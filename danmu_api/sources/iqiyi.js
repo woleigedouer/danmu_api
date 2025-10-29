@@ -271,68 +271,125 @@ export default class IqiyiSource extends BaseSource {
       }
 
       const blocks = tabs[0].blocks || [];
-      const episodeGroups = [];
+      let foundEpisodes = false;
 
       for (const block of blocks) {
-        if (block.bk_type === "album_episodes") {
-          const blockData = block.data?.data || [];
-          episodeGroups.push(...blockData);
-        }
-      }
+        // 查找 video_list 类型的块（新版API）
+        if (block.bk_type === "video_list" && block.data?.data) {
+          log("debug", `[iQiyi] 找到 video_list 类型的分集数据块, bk_id: ${block.bk_id}`);
 
-      if (episodeGroups.length === 0) {
-        log("info", "[iQiyi] 未找到分集数据块");
-        return [];
-      }
-
-      // 第五步：处理分集数据
-      for (const group of episodeGroups) {
-        let videosData = group.videos;
-
-        // 如果 videos 是 URL，需要额外请求
-        if (typeof videosData === 'string') {
-          log("info", `[iQiyi] 发现分季URL，正在获取: ${videosData}`);
-          try {
-            const seasonResponse = await httpGet(videosData);
-            videosData = typeof seasonResponse.data === "string" ? JSON.parse(seasonResponse.data) : seasonResponse.data;
-          } catch (error) {
-            log("error", `[iQiyi] 获取分季数据失败: ${error.message}`);
+          // 检查是否是分集选择器块
+          if (!block.tag || !block.tag.includes("episodes")) {
+            log("debug", `[iQiyi] 跳过非分集块: ${block.bk_id}`);
             continue;
           }
-        }
 
-        // 处理分页数据
-        if (videosData && typeof videosData === 'object' && videosData.feature_paged) {
-          for (const pageKey in videosData.feature_paged) {
-            const pagedList = videosData.feature_paged[pageKey];
-            for (const epData of pagedList) {
-              if (epData.content_type !== 1) continue;
+          foundEpisodes = true;
 
-              const playUrl = epData.play_url || "";
-              const tvidMatch = playUrl.match(/tvid=(\d+)/);
-              if (!tvidMatch) continue;
+          const dataGroups = block.data.data;
+          if (!Array.isArray(dataGroups)) {
+            log("warn", "[iQiyi] data.data 不是数组，跳过此块");
+            continue;
+          }
 
-              const tvid = tvidMatch[1];
-              let title = epData.short_display_name || epData.title || "未知分集";
-              const subtitle = epData.subtitle;
-              if (subtitle && !title.includes(subtitle)) {
-                title = `${title} ${subtitle}`;
-              }
+          for (const group of dataGroups) {
+            if (!group.videos || !Array.isArray(group.videos)) continue;
 
-              const order = epData.album_order;
-              const pageUrl = epData.page_url;
+            // 遍历每个年份/季度分组
+            for (const videoGroup of group.videos) {
+              if (!videoGroup.data || !Array.isArray(videoGroup.data)) continue;
 
-              if (tvid && title && order && pageUrl) {
-                allEpisodes.push({
-                  id: tvid,
-                  title: title,
-                  order: order,
-                  link: pageUrl
-                });
+              // 处理每个分集
+              for (const epData of videoGroup.data) {
+                // 只处理正片内容 (content_type === 1)
+                if (epData.content_type !== 1) continue;
+
+                const playUrl = epData.play_url || "";
+                const tvidMatch = playUrl.match(/tvid=(\d+)/);
+                if (!tvidMatch) continue;
+
+                const tvid = tvidMatch[1];
+                let title = epData.short_display_name || epData.title || "未知分集";
+                const subtitle = epData.subtitle;
+                if (subtitle && !title.includes(subtitle)) {
+                  title = `${title} ${subtitle}`;
+                }
+
+                const order = epData.album_order;
+                const pageUrl = epData.page_url;
+
+                if (tvid && title && pageUrl) {
+                  allEpisodes.push({
+                    id: tvid,
+                    title: title,
+                    order: order !== undefined ? order : allEpisodes.length,
+                    link: pageUrl
+                  });
+                }
               }
             }
           }
         }
+        // 兼容旧版 API 的 album_episodes 类型
+        else if (block.bk_type === "album_episodes" && block.data?.data) {
+          log("debug", "[iQiyi] 找到 album_episodes 类型的分集数据块");
+          foundEpisodes = true;
+
+          const episodeGroups = block.data.data;
+          for (const group of episodeGroups) {
+            let videosData = group.videos;
+
+            // 如果 videos 是 URL，需要额外请求
+            if (typeof videosData === 'string') {
+              log("info", `[iQiyi] 发现分季URL，正在获取: ${videosData}`);
+              try {
+                const seasonResponse = await httpGet(videosData);
+                videosData = typeof seasonResponse.data === "string" ? JSON.parse(seasonResponse.data) : seasonResponse.data;
+              } catch (error) {
+                log("error", `[iQiyi] 获取分季数据失败: ${error.message}`);
+                continue;
+              }
+            }
+
+            // 处理分页数据
+            if (videosData && typeof videosData === 'object' && videosData.feature_paged) {
+              for (const pageKey in videosData.feature_paged) {
+                const pagedList = videosData.feature_paged[pageKey];
+                for (const epData of pagedList) {
+                  if (epData.content_type !== 1) continue;
+
+                  const playUrl = epData.play_url || "";
+                  const tvidMatch = playUrl.match(/tvid=(\d+)/);
+                  if (!tvidMatch) continue;
+
+                  const tvid = tvidMatch[1];
+                  let title = epData.short_display_name || epData.title || "未知分集";
+                  const subtitle = epData.subtitle;
+                  if (subtitle && !title.includes(subtitle)) {
+                    title = `${title} ${subtitle}`;
+                  }
+
+                  const order = epData.album_order;
+                  const pageUrl = epData.page_url;
+
+                  if (tvid && title && order && pageUrl) {
+                    allEpisodes.push({
+                      id: tvid,
+                      title: title,
+                      order: order,
+                      link: pageUrl
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (!foundEpisodes) {
+        log("info", "[iQiyi] 未找到分集数据块");
+        return [];
       }
 
       // 去重并排序
