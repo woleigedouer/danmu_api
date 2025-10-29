@@ -122,28 +122,16 @@ export default class IqiyiSource extends BaseSource {
       return null;
     }
 
-    // 提取 link_id (从 pageUrl 或 playUrl 中提取)
-    const url = album.pageUrl || album.playUrl;
-    if (!url) {
-      return null;
-    }
-
-    const linkIdMatch = url.match(/v_(\w+?)\.html/);
-    if (!linkIdMatch) {
-      return null;
-    }
-    const linkId = linkIdMatch[1];
-
     // 过滤外站付费播放
     if (album.btnText === '外站付费播放') {
       log("debug", `[iQiyi] 过滤掉外站付费播放内容: ${album.title}`);
       return null;
     }
 
-    // 提取媒体类型（参考优化后的 youku.js 和 bilibili.js）
+    // 提取媒体类型
     const channel = album.channel || "";
     let mediaType = "电视剧"; // 默认类型
-    
+
     if (channel.includes("电影")) {
       mediaType = "电影";
     } else if (channel.includes("动漫")) {
@@ -158,6 +146,52 @@ export default class IqiyiSource extends BaseSource {
       // 只保留支持的类型：电影、电视剧、动漫、综艺、纪录片
       return null;
     }
+
+    // 电影类型：使用 qipuId 作为 mediaId
+    if (mediaType === "电影") {
+      const qipuId = album.qipuId || album.playQipuId;
+      if (!qipuId) {
+        log("debug", `[iQiyi] 电影缺少 qipuId: ${album.title}`);
+        return null;
+      }
+
+      // 提取年份
+      let year = null;
+      if (album.year) {
+        const yearStr = album.year.value || album.year.name;
+        if (yearStr && typeof yearStr === 'string' && yearStr.length === 4 && /^\d{4}$/.test(yearStr)) {
+          year = parseInt(yearStr);
+        }
+      }
+
+      // 清理标题
+      const cleanedTitle = album.title.replace(/<[^>]+>/g, '').replace(/:/g, '：');
+
+      return {
+        provider: "iqiyi",
+        mediaId: `movie_${qipuId}`, // 使用特殊前缀标识电影
+        title: cleanedTitle,
+        type: mediaType,
+        year: year,
+        imageUrl: album.img || album.imgH,
+        episodeCount: 1, // 电影只有1集
+        _qipuId: qipuId // 保存原始 qipuId 供后续使用
+      };
+    }
+
+    // 非电影类型：从 pageUrl 提取 link_id
+    const url = album.pageUrl;
+    if (!url) {
+      log("debug", `[iQiyi] 非电影内容缺少 pageUrl: ${album.title}`);
+      return null;
+    }
+
+    const linkIdMatch = url.match(/v_(\w+?)\.html/);
+    if (!linkIdMatch) {
+      log("debug", `[iQiyi] 无法从 pageUrl 提取 link_id: ${url}`);
+      return null;
+    }
+    const linkId = linkIdMatch[1];
 
     // 提取年份
     let year = null;
@@ -201,12 +235,33 @@ export default class IqiyiSource extends BaseSource {
 
   /**
    * 获取分集列表
-   * @param {string} id - 视频 ID (link_id)
+   * @param {string} id - 视频 ID (link_id 或 movie_qipuId)
    * @returns {Promise<Array>} 分集列表
    */
   async getEpisodes(id) {
     try {
       log("info", `[iQiyi] 获取分集列表: media_id=${id}`);
+
+      // 检查是否是电影类型（以 movie_ 开头）
+      if (id.startsWith('movie_')) {
+        const qipuId = id.substring(6); // 移除 "movie_" 前缀
+        log("info", `[iQiyi] 电影类型，调用 base_info API 获取视频ID: qipuId=${qipuId}`);
+
+        // 调用 base_info API 获取电影详情
+        const videoId = await this._getMovieVideoId(qipuId);
+        if (!videoId) {
+          log("error", `[iQiyi] 无法获取电影的视频ID: qipuId=${qipuId}`);
+          return [];
+        }
+
+        log("info", `[iQiyi] 电影视频ID: ${videoId}`);
+        return [{
+          id: videoId,
+          title: "正片",
+          order: 1,
+          link: `https://www.iqiyi.com/v_${videoId}.html`
+        }];
+      }
 
       // 第一步：将 video_id 转换为 entity_id
       const entityId = this._videoIdToEntityId(id);
@@ -404,6 +459,94 @@ export default class IqiyiSource extends BaseSource {
     } catch (error) {
       log("error", "[iQiyi] 获取分集出错:", error.message);
       return [];
+    }
+  }
+
+  /**
+   * 获取电影的视频ID（从 qipuId 获取正确的 video_id）
+   * @param {string} qipuId - 电影的 qipuId
+   * @returns {Promise<string|null>} 视频ID
+   */
+  async _getMovieVideoId(qipuId) {
+    try {
+      // 构建 base_info API 请求参数
+      const params = {
+        entity_id: qipuId,
+        device_id: 'qd5fwuaj4hunxxdgzwkcqmefeb3ww5hx',
+        auth_cookie: '',
+        user_id: '0',
+        vip_type: '-1',
+        vip_status: '0',
+        conduit_id: '',
+        pcv: '13.103.23529',
+        app_version: '13.103.23529',
+        ext: '',
+        app_mode: 'standard',
+        scale: '125',
+        timestamp: String(Date.now()),
+        src: 'pca_tvg',
+        os: '',
+        ad_ext: '{"r":"2.5.0-ares6-pure"}'
+      };
+
+      // 生成签名（使用与 getEpisodes 相同的方法）
+      params.sign = this._createSign(params);
+
+      // 构建 URL
+      const queryString = buildQueryString(params);
+      const url = `https://mesh.if.iqiyi.com/tvg/v2/lw/base_info?${queryString}`;
+
+      log("debug", `[iQiyi] 请求电影详情: ${url}`);
+
+      const response = await httpGet(url, {
+        headers: {
+          'accept': '*/*',
+          'origin': 'https://www.iqiyi.com',
+          'referer': 'https://www.iqiyi.com/',
+          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      });
+
+      if (!response || !response.data) {
+        log("error", "[iQiyi] base_info API 响应为空");
+        return null;
+      }
+
+      const data = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
+
+      // 从响应中提取视频ID
+      // 尝试多个可能的路径
+      if (data.data && data.data.base_data) {
+        const baseData = data.data.base_data;
+
+        // 尝试 1: 从 share_url 中提取（最可靠）
+        if (baseData.share_url) {
+          const match = baseData.share_url.match(/v_(\w+)\.html/);
+          if (match) {
+            const videoId = match[1];
+            log("info", `[iQiyi] 从 share_url 提取视频ID: ${videoId}`);
+            return videoId;
+          }
+        }
+
+        // 尝试 2: 从 page_url 中提取
+        if (baseData.page_url) {
+          const match = baseData.page_url.match(/v_(\w+)\.html/);
+          if (match) {
+            const videoId = match[1];
+            log("info", `[iQiyi] 从 page_url 提取视频ID: ${videoId}`);
+            return videoId;
+          }
+        }
+      }
+
+      log("error", "[iQiyi] base_info API 响应中未找到视频ID");
+      log("debug", `[iQiyi] 响应数据结构: ${JSON.stringify(data).substring(0, 1000)}...`);
+      return null;
+
+    } catch (error) {
+      log("error", `[iQiyi] 获取电影视频ID时出错: ${error.message}`);
+      return null;
     }
   }
 
