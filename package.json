@@ -1,7 +1,7 @@
 {
   "name": "danmu-api-server",
   "version": "1.0.0",
-  "description": "A danmu Node.js Express API server",
+  "description": "一个人人都能部署的弹幕 API 服务器，支持爱优腾芒哔人韩巴等平台弹幕获取，兼容弹弹play接口规范 | A danmu API server that everyone can deploy, supporting multiple video platforms and compatible with DanDanPlay API",
   "main": "danmu_api/server.js",
   "scripts": {
     "start": "node danmu_api/server.js"
