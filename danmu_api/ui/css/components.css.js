@@ -545,5 +545,126 @@ export const componentsCssContent = /* css */ `
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* 动漫搜索结果网格 */
+.anime-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 20px;
+    margin-top: 16px;
+}
+
+.anime-item {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.anime-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.anime-item:active {
+    transform: scale(0.98);
+}
+
+.anime-item-img {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    display: block;
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.anime-title {
+    padding: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 剧集列表 */
+.episode-list-container {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.episode-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    transition: all 0.2s;
+}
+
+.episode-item:hover {
+    background: rgba(255, 255, 255, 0.85);
+    transform: translateX(4px);
+}
+
+.episode-item-content {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text-primary);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.episode-item-content strong {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.episode-push-btn {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    font-size: 13px;
+}
+
+/* 文字颜色工具类 */
+.text-yellow-gold {
+    color: #997a00;
+}
+
+/* 推送弹幕区域标题 */
+#push-anime-list h3,
+#push-episode-list h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+#push-anime-list,
+#push-episode-list {
+    margin-top: 24px;
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+}
 `;
 

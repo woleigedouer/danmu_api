@@ -133,6 +133,42 @@ export const responsiveCssContent = /* css */ `
     #env-modal .modal-header h3 {
         font-size: 18px;
     }
+
+    /* 推送弹幕移动端适配 */
+    .anime-grid {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 12px;
+    }
+
+    .anime-item-img {
+        aspect-ratio: 3 / 4;
+    }
+
+    .anime-title {
+        padding: 10px;
+        font-size: 12px;
+    }
+
+    .episode-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 14px 16px;
+    }
+
+    .episode-item-content {
+        white-space: normal;
+    }
+
+    .episode-push-btn {
+        width: 100%;
+    }
+
+    #push-anime-list,
+    #push-episode-list {
+        padding: 16px;
+        margin-top: 16px;
+    }
 }
 `;
 
