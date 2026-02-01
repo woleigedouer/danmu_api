@@ -1,46 +1,62 @@
 // language=CSS
 export const formsCssContent = /* css */ `
-/* 表单样式 */
+/* 表单样式 - Zen-iOS Hybrid Design */
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 24px;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-    color: #333;
+    margin-bottom: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+    padding: 12px 16px;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 12px; /* Smooth corners */
     font-size: 14px;
+    background-color: rgba(245, 245, 247, 0.5); /* #F5F5F7 50% */
+    color: var(--text-primary);
+    box-shadow: var(--shadow-inner); /* Inner shadow for depth */
+    transition: all 0.2s;
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    background-color: #FFFFFF;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(28, 28, 30, 0.1); /* Focus ring */
 }
 
 .form-group textarea {
     resize: vertical;
-    min-height: 80px;
-    font-family: 'Courier New', Consolas, monospace;
+    min-height: 100px;
+    font-family: 'SF Mono', 'Menlo', monospace;
     line-height: 1.5;
 }
 
-/* 开关按钮 */
+/* 开关按钮 (iOS style) */
 .switch-container {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 .switch {
     position: relative;
     display: inline-block;
-    width: 50px;
-    height: 26px;
+    width: 52px;
+    height: 32px;
 }
 
 .switch input {
@@ -56,301 +72,236 @@ export const formsCssContent = /* css */ `
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-    border-radius: 26px;
+    background-color: rgba(120, 120, 128, 0.16); /* iOS gray */
+    transition: .3s cubic-bezier(0.25, 1, 0.5, 1);
+    border-radius: 32px;
 }
 
 .slider:before {
     position: absolute;
     content: "";
-    height: 18px;
-    width: 18px;
-    left: 4px;
-    bottom: 4px;
+    height: 28px;
+    width: 28px;
+    left: 2px;
+    bottom: 2px;
     background-color: white;
-    transition: .4s;
+    transition: .3s cubic-bezier(0.25, 1, 0.5, 1);
     border-radius: 50%;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 3px 1px rgba(0, 0, 0, 0.06);
 }
 
 input:checked + .slider {
-    background-color: #667eea;
+    background-color: var(--success-color); /* Green for on */
 }
 
 input:checked + .slider:before {
-    transform: translateX(24px);
+    transform: translateX(20px);
 }
 
 .switch-label {
-    font-weight: 500;
-    color: #333;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
 }
 
 /* 数字滚轮 */
 .number-picker {
     display: flex;
     align-items: center;
-    gap: 15px;
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
+    gap: 20px;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,0.05);
 }
 
 .number-display {
-    font-size: 32px;
-    font-weight: bold;
-    color: #667eea;
-    min-width: 60px;
+    font-size: 40px;
+    font-weight: 800;
+    color: var(--text-primary);
+    min-width: 70px;
     text-align: center;
+    font-variant-numeric: tabular-nums;
 }
 
 .number-controls {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
 }
 
 .number-btn {
-    width: 40px;
-    height: 40px;
-    border: 2px solid #667eea;
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba(0,0,0,0.1);
     background: white;
-    color: #667eea;
-    border-radius: 8px;
+    color: var(--text-primary);
+    border-radius: 10px;
     cursor: pointer;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
-    transition: all 0.3s;
+    transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
 .number-btn:hover {
-    background: #667eea;
-    color: white;
+    background: #F5F5F7;
+    transform: translateY(-1px);
 }
 
 .number-btn:active {
     transform: scale(0.95);
+    background: #E5E5EA;
 }
 
-.number-range {
-    width: 100%;
-    margin-top: 10px;
-}
-
+/* Range Slider */
 .number-range input[type="range"] {
+    -webkit-appearance: none;
     width: 100%;
     height: 6px;
     border-radius: 3px;
-    background: #ddd;
+    background: rgba(120, 120, 128, 0.16);
     outline: none;
-    -webkit-appearance: none;
+    padding: 0;
+    box-shadow: none;
+    border: none;
 }
 
 .number-range input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
-    background: #667eea;
+    background: white;
     cursor: pointer;
-}
-
-.number-range input[type="range"]::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #667eea;
-    cursor: pointer;
-    border: none;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 3px 1px rgba(0, 0, 0, 0.06);
+    border: 0.5px solid rgba(0,0,0,0.04);
 }
 
 /* 标签选择 */
 .tag-selector {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
 }
 
 .tag-option {
-    padding: 10px 20px;
-    background: #f0f0f0;
-    border: 2px solid transparent;
-    border-radius: 20px;
+    padding: 8px 16px;
+    background: #FFFFFF;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 100px;
     cursor: pointer;
-    transition: all 0.3s;
-    font-size: 14px;
-    font-weight: 500;
+    transition: all 0.2s;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
 }
 
 .tag-option:hover {
-    background: #e0e0e0;
+    background: #F5F5F7;
+    color: var(--text-primary);
 }
 
 .tag-option.selected {
-    background: #667eea;
+    background: var(--primary-color);
     color: white;
-    border-color: #667eea;
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
-.tag-option.selected:hover {
-    background: #5568d3;
-}
-
-/* 多选标签 */
-.multi-select-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
+/* 多选区域 */
 .selected-tags {
-    min-height: 60px;
-    background: #f8f9fa;
-    border: 2px dashed #ddd;
-    border-radius: 8px;
-    padding: 10px;
+    min-height: 80px;
+    background: rgba(245, 245, 247, 0.5);
+    border: 1px dashed rgba(0,0,0,0.15);
+    border-radius: 16px;
+    padding: 16px;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
     align-items: flex-start;
-}
-
-.selected-tags.empty::before {
-    content: '拖动或点击下方选项添加...';
-    color: #999;
-    font-size: 14px;
-    width: 100%;
-    text-align: center;
-    padding: 15px 0;
+    box-shadow: var(--shadow-inner);
 }
 
 .selected-tag {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: #667eea;
+    background: var(--primary-color);
     color: white;
-    padding: 8px 12px;
-    border-radius: 20px;
+    padding: 8px 16px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     cursor: move;
-    user-select: none;
-    transition: all 0.3s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.selected-tag:hover {
-    background: #5568d3;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-.selected-tag.dragging {
-    opacity: 0.5;
-    transform: rotate(5deg);
-}
-
-.selected-tag .tag-text {
-    font-weight: 500;
 }
 
 .selected-tag .remove-btn {
-    width: 18px;
-    height: 18px;
-    background: rgba(255,255,255,0.3);
-    border: none;
+    width: 20px;
+    height: 20px;
+    background: rgba(255,255,255,0.2);
     border-radius: 50%;
-    color: white;
-    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    font-weight: bold;
-    transition: all 0.2s;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 12px;
 }
 
 .selected-tag .remove-btn:hover {
-    background: rgba(255,255,255,0.5);
-    transform: scale(1.1);
+    background: rgba(255,255,255,0.4);
 }
 
 .available-tags {
+    margin-top: 15px;
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
 }
 
 .available-tag {
-    padding: 8px 16px;
-    background: #f0f0f0;
-    border: 2px solid transparent;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-size: 14px;
+    padding: 6px 14px;
+    background: #FFFFFF;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 100px;
+    font-size: 12px;
     font-weight: 500;
-    user-select: none;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+    display: inline-flex;
+    cursor: pointer;
 }
 
 .available-tag:hover {
-    background: #e0e0e0;
-    transform: translateY(-2px);
+    transform: translateY(-1px);
+    border-color: rgba(0,0,0,0.2);
 }
 
-.available-tag.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: #f8f9fa;
-}
-
-.available-tag.disabled:hover {
-    transform: none;
-}
-
-.drag-over {
-    background: #e8eaf6 !important;
-    border-color: #667eea !important;
-}
-
-/* 映射表样式 */
-.map-container {
-    margin-top: 10px;
-}
-
+/* Map items */
 .map-item {
+    background: #FFFFFF;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background-color: #f9f9f9;
+    gap: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
 }
 
 .map-input-left, .map-input-right {
-    flex: 1;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.map-separator {
-    font-weight: bold;
-    color: #666;
-}
-
-.map-remove-btn {
-    margin-left: 10px;
-    padding: 6px 12px;
-    font-size: 12px;
-}
-
-.map-item-template {
-    display: none;
+    background: #F5F5F7;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: 'SF Mono', monospace;
+    font-size: 13px;
 }
 `;
