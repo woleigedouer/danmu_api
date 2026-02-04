@@ -1042,7 +1042,10 @@ export function findSecondaryMatches(primaryAnime, secondaryList) {
   // 检测中配 (RE_CN_DUB_VER 是 global，使用 match 避免 lastIndex 问题)
   const isPrimaryDub = !!(primaryTitleForSim.match(RE_CN_DUB_VER)) || RE_LANG_CN.test(primaryTitleForSim);
 
-  const primaryDate = rawPrimaryTitle.includes('N/A') ? { year: null, month: null } : parseDate(primaryAnime.startDate);
+  // 针对 hanjutv 源进行年份忽略处理，视为无效日期
+  const isPrimaryIgnoredYear = primaryAnime.source === 'hanjutv';
+  const primaryDate = (rawPrimaryTitle.includes('N/A') || isPrimaryIgnoredYear) ? { year: null, month: null } : parseDate(primaryAnime.startDate);
+  
   const primaryCount = primaryAnime.episodeCount || (primaryAnime.links ? primaryAnime.links.length : 0);
   const primaryLang = getLanguageType(rawPrimaryTitle);
 
@@ -1062,7 +1065,10 @@ export function findSecondaryMatches(primaryAnime, secondaryList) {
 
   for (const secAnime of secondaryList) {
     const rawSecTitle = secAnime.animeTitle || '';
-    const secDate = rawSecTitle.includes('N/A') ? { year: null, month: null } : parseDate(secAnime.startDate);
+
+    // 针对 hanjutv 源进行年份忽略处理，视为无效日期
+    const isSecIgnoredYear = secAnime.source === 'hanjutv';
+    const secDate = (rawSecTitle.includes('N/A') || isSecIgnoredYear) ? { year: null, month: null } : parseDate(secAnime.startDate);
 
     const secLang = getLanguageType(rawSecTitle);
     let secTitleForSim = rawSecTitle.replace(RE_YEAR_TAG, '');
@@ -2055,7 +2061,18 @@ export async function applyMergeLogic(curAnimes) {
   const generatedSignatures = new Set();
   const globalConsumedIds = new Set();
 
+  // 识别需要保留原始结果的单源配置 (防止被合并消耗)
+  const keepSources = new Set();
+  groups.forEach(g => {
+      if (g.secondaries.length === 0) {
+          keepSources.add(g.primary);
+      }
+  });
+
   for (const group of groups) {
+    // 跳过纯保留配置，不进行合并处理
+    if (group.secondaries.length === 0) continue;
+
     const groupConsumedIds = new Set();
 
     const fullPriorityList = [group.primary, ...group.secondaries];
@@ -2172,6 +2189,15 @@ export async function applyMergeLogic(curAnimes) {
          addAnime(anime);
      }
      curAnimes.unshift(...newMergedAnimes);
+  }
+
+  // 保护配置为单源保留的条目，将其从消耗列表中移除，确保原始条目不被删除
+  if (keepSources.size > 0) {
+      for (const anime of curAnimes) {
+          if (globalConsumedIds.has(anime.animeId) && keepSources.has(anime.source)) {
+              globalConsumedIds.delete(anime.animeId);
+          }
+      }
   }
   
   for (let i = curAnimes.length - 1; i >= 0; i--) {
