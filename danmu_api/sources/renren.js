@@ -12,12 +12,29 @@ import { SegmentListResponse } from '../models/dandan-model.js';
 // 获取人人视频弹幕
 // =====================
 
+
+// 模块级状态管理 (Instance Level State)
+// 缓存当前的 AliID (全局共享，跨请求持久化，模拟设备指纹)
+let CACHED_ALI_ID = null;
+// 当前 AliID 已请求次数
+let REQUEST_COUNT = 0;
+// 触发轮换的阈值 (将在 30-60 之间随机生成)
+let ROTATION_THRESHOLD = 0;
+
 /**
  * 人人视频弹幕源
  * 集成 TV 端 API 协议，保留网页版接口作为降级容灾策略。
  * 兼容处理 SeriesId-EpisodeId 复合主键，确保弹幕与剧集详情的关联正确性。
  */
 export default class RenrenSource extends BaseSource {
+  constructor() {
+    super();
+    // 实例级标记：当前是否处于批量请求模式
+    // 在此模式下（例如处理 handleAnimes 列表遍历），内部的 AliID 获取请求暂时不增加计数
+    // 直到批量操作结束（finally 块）时，才统一结算一次计数
+    this.isBatchMode = false;
+  }
+
   // API 配置常量
   API_CONFIG = {
     SECRET_KEY: "cf65GPholnICgyw1xbrpA79XVkizOdMq",
@@ -36,6 +53,87 @@ export default class RenrenSource extends BaseSource {
   };
 
   /**
+   * 生成随机的 aliid
+   * 规律：24位长度，以 'aY' 开头，包含字母数字和 Base64 特殊字符
+   * 模拟抓包数据：aYN4D0XfSREDAJaw3UAjG33K
+   */
+  generateRandomAliId() {
+    const prefix = "aY";
+    const length = 24 - prefix.length;
+    // 标准 Base64 字符集
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    let result = prefix;
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+
+  /**
+   * 执行 ID 轮换/初始化
+   * 生成新的 ID，重置计数器，并随机生成下一次的轮换阈值
+   */
+  rotateAliId() {
+    const oldId = CACHED_ALI_ID;
+    CACHED_ALI_ID = this.generateRandomAliId();
+    REQUEST_COUNT = 0; // 重置计数
+    // 生成 30 到 60 之间的随机整数作为阈值
+    ROTATION_THRESHOLD = Math.floor(Math.random() * (60 - 30 + 1)) + 30;
+    
+    if (oldId) {
+        log("info", `[Renren] AliID 轮换完成: ${oldId} -> ${CACHED_ALI_ID}`);
+    } else {
+        log("info", `[Renren] AliID 初始化完成: ${CACHED_ALI_ID}`);
+    }
+    log("info", `[Renren] AliID 下次轮换将在 ${ROTATION_THRESHOLD} 次操作后触发`);
+  }
+
+  /**
+   * 检查并增加计数 (核心逻辑)
+   * 负责监控使用次数，达到阈值时触发轮换
+   * 并在日志中明确输出 AliID 计数状态
+   */
+  checkAndIncrementUsage() {
+    // 1. 如果 ID 未初始化，强制初始化
+    if (!CACHED_ALI_ID) {
+      this.rotateAliId();
+    }
+
+    // 2. 检查阈值，决定是否轮换
+    if (REQUEST_COUNT >= ROTATION_THRESHOLD) {
+      log("info", `[Renren] AliID 触发阈值 (${REQUEST_COUNT}/${ROTATION_THRESHOLD})，正在轮换 ID...`);
+      this.rotateAliId();
+    }
+
+    // 3. 增加计数
+    REQUEST_COUNT++;
+    // 输出明确的计数日志，方便排查
+    log("info", `[Renren] AliID 计数增加: ${REQUEST_COUNT}/${ROTATION_THRESHOLD} (当前ID: ...${CACHED_ALI_ID.slice(-6)})`);
+  }
+
+  /**
+   * 获取有效的 aliid
+   * 根据 isBatchMode 决定是否增加计数
+   */
+  getAliId() {
+    // 兜底：确保 ID 存在
+    if (!CACHED_ALI_ID) {
+      this.rotateAliId();
+    }
+
+    // 如果处于批量模式，直接返回当前 ID，不增加计数
+    // 逻辑：批量模式（如详情遍历）会在结束时统一调用一次 checkAndIncrementUsage 进行结算
+    // 所以过程中获取 ID 是“免费”的，避免一次搜索消耗几十次计数
+    if (this.isBatchMode) {
+      return CACHED_ALI_ID;
+    }
+
+    // 普通模式（如单独的搜索请求），正常计数（预付费模式）
+    this.checkAndIncrementUsage();
+    return CACHED_ALI_ID;
+  }
+
+  /**
    * 生成 TV 端接口所需的请求头
    * 处理签名、设备标识及版本控制字段
    * @param {number} timestamp 当前时间戳
@@ -43,12 +141,15 @@ export default class RenrenSource extends BaseSource {
    * @returns {Object} HTTP Headers
    */
   generateTvHeaders(timestamp, sign) {
+    // 获取 aliid (包含动态轮换和批量锁定逻辑)
+    const aliId = this.getAliId();
+
     return {
       'clientVersion': this.API_CONFIG.TV_VERSION,
       'p': 'Android',
-      'deviceid': 'tWEtIN7JG2DTDkBBigvj6A%3D%3D',
+      'deviceid': 'tWEtIN7JG2DTDkBBigvj6A%3D%3D', // 固定设备指纹
       'token': '', // 必须为空字符串以通过校验
-      'aliid': 'aYBd5dAzYrgDAOVWv2eYoPSo',
+      'aliid': aliId, // 使用动态aliId
       'umid': '',  // 必须为空字符串以通过校验
       'clienttype': this.API_CONFIG.TV_CLIENT_TYPE,
       'pkt': this.API_CONFIG.TV_PKT,
@@ -85,14 +186,22 @@ export default class RenrenSource extends BaseSource {
       
       const headers = this.generateTvHeaders(timestamp, sign);
 
-      const resp = await httpGet(`https://${this.API_CONFIG.TV_HOST}${path}?${queryString}`, {
+      const url = `https://${this.API_CONFIG.TV_HOST}${path}?${queryString}`;
+      // log("info", `[Renren] TV搜索请求: ${url}`);
+
+      const resp = await httpGet(url, {
         headers: headers,
         retries: 1,
       });
 
-      if (!resp.data || resp.data.code !== "0000") return [];
+      if (!resp.data || resp.data.code !== "0000") {
+        log("info", `[Renren] TV搜索接口异常: code=${resp?.data?.code}, msg=${resp?.data?.msg}`);
+        return [];
+      }
 
       const list = resp.data.data || [];
+      log("info", `[Renren] TV搜索返回结果数量: ${list.length}`);
+
       return list.map((item) => ({
         provider: "renren",
         mediaId: String(item.id),
@@ -105,7 +214,7 @@ export default class RenrenSource extends BaseSource {
         currentEpisodeIndex: null,
       }));
     } catch (error) {
-      log("error", "[Renren] searchAppContent error:", error.message);
+      log("info", "[Renren] searchAppContent error:", error.message);
       return [];
     }
   }
@@ -141,10 +250,38 @@ export default class RenrenSource extends BaseSource {
         retries: 1,
       });
 
-      if (!resp.data || resp.data.code !== "0000") return null;
-      return resp.data;
+      // 1. 基础网络或数据校验
+      if (!resp || !resp.data) {
+        log("info", `[Renren] TV详情接口网络无响应或数据为空: ID=${dramaId}`);
+        return null;
+      }
+      
+      const resData = resp.data;
+      const msg = resData.msg || resData.message || "";
+
+      // 2. 检测特定维护信息 "该剧暂不可播"
+      // 这通常意味着 App 接口正在维护或该资源被下架，必须降级到 Web 版
+      if (msg.includes("该剧暂不可播")) {
+          log("info", `[Renren] TV接口提示'该剧暂不可播' (ID=${dramaId})，视为维护中，触发Web降级`);
+          return null; // 触发降级
+      }
+
+      // 3. 检测错误码
+      if (resData.code !== "0000") {
+        log("info", `[Renren] TV详情接口返回错误码: ${resData.code}, msg=${msg} (ID=${dramaId})`);
+        return null;
+      }
+
+      // 4. 检测分集数据完整性 (关键修改：如果详情成功但没分集，也视为失败)
+      if (!resData.data || !resData.data.episodeList || resData.data.episodeList.length === 0) {
+        log("info", `[Renren] TV详情接口返回数据缺失分集列表 (ID=${dramaId})，尝试Web降级`);
+        return null; // 触发降级
+      }
+
+      log("info", `[Renren] TV详情获取成功: ID=${dramaId}, 包含集数=${resData.data.episodeList.length}`);
+      return resData;
     } catch (error) {
-      log("error", "[Renren] getAppDramaDetail error:", error.message);
+      log("info", "[Renren] getAppDramaDetail error:", error.message);
       return null;
     }
   }
@@ -189,7 +326,7 @@ export default class RenrenSource extends BaseSource {
 
       return [];
     } catch (error) {
-      log("error", "[Renren] getAppDanmu error:", error.message);
+      log("info", "[Renren] getAppDanmu error:", error.message);
       return null;
     }
   }
@@ -199,6 +336,7 @@ export default class RenrenSource extends BaseSource {
    */
   async performNetworkSearch(keyword, { lockRef = null, lastRequestTimeRef = { value: 0 }, minInterval = 500 } = {}) {
     try {
+      log("info", `[Renren] 尝试执行网页版搜索: ${keyword}`);
       const url = `https://${this.API_CONFIG.WEB_HOST}/m-station/search/drama`;
       const params = { 
         keywords: keyword, 
@@ -222,10 +360,15 @@ export default class RenrenSource extends BaseSource {
 
       if (lockRef) lockRef.value = false;
 
-      if (!resp.data) return [];
+      if (!resp.data) {
+        log("info", "[Renren] 网页版搜索无响应数据");
+        return [];
+      }
 
       const decoded = autoDecode(resp.data);
       const list = decoded?.data?.searchDramaList || [];
+      log("info", `[Renren] 网页版搜索结果数量: ${list.length}`);
+      
       return list.map((item) => ({
         provider: "renren",
         mediaId: String(item.id),
@@ -238,7 +381,7 @@ export default class RenrenSource extends BaseSource {
         currentEpisodeIndex: null,
       }));
     } catch (error) {
-      log("error", "[Renren] performNetworkSearch error:", error.message);
+      log("info", "[Renren] performNetworkSearch error:", error.message);
       return [];
     }
   }
@@ -248,6 +391,7 @@ export default class RenrenSource extends BaseSource {
   // =====================
 
   async search(keyword) {
+    log("info", `[Renren] 开始搜索: ${keyword}`);
     const parsedKeyword = { title: keyword, season: null };
     const searchTitle = parsedKeyword.title;
     const searchSeason = parsedKeyword.season;
@@ -282,18 +426,39 @@ export default class RenrenSource extends BaseSource {
     }
     
     // 2. 降级策略: 尝试网页接口
-    log("info", "[Renren] TV 详情接口失败，降级到网页接口"); // [复原日志]
+    log("info", `[Renren] TV详情不可用，尝试请求网页版接口 (ID=${id})`); 
     const url = `https://${this.API_CONFIG.WEB_HOST}/m-station/drama/page`;
     const params = { hsdrOpen: 0, isAgeLimit: 0, dramaId: String(id), hevcOpen: 1 };
-    const fallbackResp = await this.renrenRequest("GET", url, params);
-    if (!fallbackResp.data) return null;
-    const decoded = autoDecode(fallbackResp.data);
-    return decoded?.data || null;
+    
+    try {
+      const fallbackResp = await this.renrenRequest("GET", url, params);
+      if (!fallbackResp.data) return null;
+      
+      const decoded = autoDecode(fallbackResp.data);
+      if (decoded && decoded.data) {
+         log("info", `[Renren] 网页版详情获取成功: 包含集数=${decoded.data.episodeList ? decoded.data.episodeList.length : 0}`);
+         return decoded.data;
+      }
+      return null;
+    } catch (e) {
+      log("info", `[Renren] 网页版详情请求失败: ${e.message}`);
+      return null;
+    }
   }
 
   async getEpisodes(id) {
+    log("info", `[Renren] 正在获取分集信息: ID=${id}`);
     const detail = await this.getDetail(id);
-    if (!detail || !detail.episodeList) return [];
+    
+    if (!detail) {
+      log("info", `[Renren] 获取分集失败: 详情对象为空 ID=${id}`);
+      return [];
+    }
+    
+    if (!detail.episodeList || !Array.isArray(detail.episodeList)) {
+       log("info", `[Renren] 获取分集失败: episodeList 字段缺失或非数组 ID=${id}`);
+       return [];
+    }
 
     let episodes = [];
     const seriesId = String(id); 
@@ -311,6 +476,8 @@ export default class RenrenSource extends BaseSource {
       episodes.push({ sid: compositeId, order: ep.episodeNo || idx + 1, title: showTitle });
     });
 
+    log("info", `[Renren] 成功解析分集数量: ${episodes.length} (ID=${id})`);
+
     return episodes.map(e => ({
       provider: "renren",
       episodeId: e.sid,
@@ -324,51 +491,66 @@ export default class RenrenSource extends BaseSource {
     const tmpAnimes = [];
 
     if (!sourceAnimes || !Array.isArray(sourceAnimes)) {
-      log("error", "[Renren] sourceAnimes is not a valid array");
+      log("info", "[Renren] sourceAnimes is not a valid array");
       return [];
     }
 
-    await Promise.all(sourceAnimes
-      .filter(s => titleMatches(s.title, queryTitle))
-      .map(async (anime) => {
-        try {
-          const eps = await this.getEpisodes(anime.mediaId);
-          let links = [];
-          for (const ep of eps) {
-            links.push({
-              "name": ep.episodeIndex.toString(),
-              "url": ep.episodeId,
-              "title": `【${ep.provider}】 ${ep.title}`
-            });
-          }
-
-          if (links.length > 0) {
-            let transformedAnime = {
-              animeId: Number(anime.mediaId),
-              bangumiId: String(anime.mediaId),
-              animeTitle: `${anime.title}(${anime.year})【${anime.type}】from renren`,
-              type: anime.type,
-              typeDescription: anime.type,
-              imageUrl: anime.imageUrl,
-              startDate: generateValidStartDate(anime.year),
-              episodeCount: links.length,
-              rating: 0,
-              isFavorited: true,
-              source: "renren",
-            };
-
-            tmpAnimes.push(transformedAnime);
-            addAnime({ ...transformedAnime, links: links });
-
-            if (globals.animes.length > globals.MAX_ANIMES) {
-              removeEarliestAnime();
+    // [标记开始] 进入批量处理模式
+    // 注意：此处不再输出冗余日志，也不扣费。开启静默模式。
+    this.isBatchMode = true;
+    
+    try {
+      await Promise.all(sourceAnimes
+        .filter(s => titleMatches(s.title, queryTitle))
+        .map(async (anime) => {
+          try {
+            // 在此块中调用的 getEpisodes -> ... -> getAliId
+            // 会因为 isBatchMode=true 而直接返回缓存ID，不增加计数
+            const eps = await this.getEpisodes(anime.mediaId);
+            
+            let links = [];
+            for (const ep of eps) {
+              links.push({
+                "name": ep.episodeIndex.toString(),
+                "url": ep.episodeId,
+                "title": `【${ep.provider}】 ${ep.title}`
+              });
             }
+
+            if (links.length > 0) {
+              let transformedAnime = {
+                animeId: Number(anime.mediaId),
+                bangumiId: String(anime.mediaId),
+                animeTitle: `${anime.title}(${anime.year})【${anime.type}】from renren`,
+                type: anime.type,
+                typeDescription: anime.type,
+                imageUrl: anime.imageUrl,
+                startDate: generateValidStartDate(anime.year),
+                episodeCount: links.length,
+                rating: 0,
+                isFavorited: true,
+                source: "renren",
+              };
+
+              tmpAnimes.push(transformedAnime);
+              addAnime({ ...transformedAnime, links: links });
+
+              if (globals.animes.length > globals.MAX_ANIMES) {
+                removeEarliestAnime();
+              }
+            }
+          } catch (error) {
+            log("info", `[Renren] Error processing anime: ${error.message}`);
           }
-        } catch (error) {
-          log("error", `[Renren] Error processing anime: ${error.message}`);
-        }
-      })
-    );
+        })
+      );
+    } finally {
+      // [标记结束] 退出批量模式
+      this.isBatchMode = false;
+      // [结算扣费] 批量操作结束，统一结算一次 AliID 计数
+      // 这样日志会出现在所有请求日志的末尾，符合“处理完毕，消耗一次”的直觉
+      this.checkAndIncrementUsage();
+    }
 
     this.sortAndPushAnimesByYear(tmpAnimes, curAnimes);
 
@@ -432,7 +614,7 @@ export default class RenrenSource extends BaseSource {
       
       return list;
     } catch (e) {
-      log("error", `[Renren] 网页版弹幕降级失败: ${e.message}`);
+      log("info", `[Renren] 网页版弹幕降级失败: ${e.message}`);
       return [];
     }
   }
