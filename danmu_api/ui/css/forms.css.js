@@ -283,6 +283,143 @@ input:checked + .slider:before {
     border-color: rgba(0,0,0,0.2);
 }
 
+.available-tag.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* 合并模式控制区 */
+.merge-mode-controls {
+    display: flex;
+    align-items: center;
+    margin-top: 16px;
+    margin-bottom: 12px;
+    gap: 0;
+}
+
+.merge-mode-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--accent-color);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    position: relative;
+}
+
+.merge-mode-btn:hover {
+    color: #005ecb;
+}
+
+.merge-mode-btn:active {
+    opacity: 0.6;
+}
+
+.merge-mode-btn.active {
+    color: var(--success-color);
+}
+
+.merge-mode-controls .form-help {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0;
+    margin-left: 10px;
+}
+
+/* 暂存区 */
+.staging-area {
+    display: none;
+    min-height: 60px;
+    background: rgba(255, 243, 205, 0.3);
+    border: 1px dashed rgba(255, 193, 7, 0.4);
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    position: relative;
+}
+
+.staging-area.active {
+    display: flex;
+}
+
+.staging-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 193, 7, 0.15);
+    color: var(--text-primary);
+    padding: 6px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    cursor: move;
+}
+
+.staging-tag.dragging {
+    opacity: 0.5;
+}
+
+.staging-tag.drag-over {
+    border-color: var(--accent-color);
+    background: rgba(0, 122, 255, 0.1);
+}
+
+.staging-tag .remove-btn {
+    width: 16px;
+    height: 16px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 11px;
+    line-height: 1;
+}
+
+.staging-tag .remove-btn:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.confirm-merge-btn {
+    width: 32px;
+    height: 32px;
+    background: var(--success-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(52, 199, 89, 0.3);
+    margin-left: auto;
+}
+
+.confirm-merge-btn:hover {
+    background: #2fb350;
+    transform: scale(1.05);
+}
+
+.confirm-merge-btn:active {
+    transform: scale(0.95);
+}
+
 /* Map items */
 .map-item {
     background: #FFFFFF;

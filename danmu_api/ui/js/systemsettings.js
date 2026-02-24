@@ -803,12 +803,12 @@ function toggleMergeMode() {
 
     if (isMergeMode) {
         btn.classList.add('active');
-        btn.innerHTML = '合并模式已开启，点击关闭';
+        btn.innerHTML = '关闭合并模式';
         stagingArea.classList.add('active');
         renderStagingArea();
     } else {
         btn.classList.remove('active');
-        btn.innerHTML = '点击开启合并模式';
+        btn.innerHTML = '开启合并模式';
         stagingArea.classList.remove('active');
         stagingTags = [];
     }
