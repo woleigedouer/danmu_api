@@ -3,6 +3,7 @@ import { getPageTitle, jsonResponse, httpGet } from '../utils/http-util.js';
 import { log } from '../utils/log-util.js'
 import { simplized } from '../utils/zh-util.js';
 import { setRedisKey, updateRedisCaches } from "../utils/redis-util.js";
+import { setLocalRedisKey, updateLocalRedisCaches } from "../utils/local-redis-util.js";
 import {
     setCommentCache, addAnime, findAnimeIdByCommentId, findTitleById, findUrlById, getCommentCache, getPreferAnimeId,
     getSearchCache, removeEarliestAnime, setPreferByAnimeId, setSearchCache, storeAnimeIdsToMap, writeCacheToFile,
@@ -11,7 +12,7 @@ import {
 import { formatDanmuResponse, convertToDanmakuJson } from "../utils/danmu-util.js";
 import { extractEpisodeTitle, convertChineseNumber, parseFileName, createDynamicPlatformOrder, normalizeSpaces, extractYear } from "../utils/common-util.js";
 import { getTMDBChineseTitle } from "../utils/tmdb-util.js";
-import { applyMergeLogic, mergeDanmakuList, MERGE_DELIMITER } from "../utils/merge-util.js";
+import { applyMergeLogic, mergeDanmakuList, MERGE_DELIMITER, alignSourceTimelines } from "../utils/merge-util.js";
 import AIClient from '../utils/ai-util.js';
 import Kan360Source from "../sources/kan360.js";
 import VodSource from "../sources/vod.js";
@@ -201,6 +202,9 @@ export async function searchAnime(url, preferAnimeId = null, preferSource = null
     if (globals.redisValid && curAnimes.length !== 0) {
       await updateRedisCaches();
     }
+    if (globals.localRedisValid && curAnimes.length !== 0) {
+      await updateLocalRedisCaches();
+    }
 
     return jsonResponse({
       errorCode: 0,
@@ -381,6 +385,9 @@ export async function searchAnime(url, preferAnimeId = null, preferSource = null
   // 如果有新的anime获取到，则更新redis
   if (globals.redisValid && curAnimes.length !== 0) {
     await updateRedisCaches();
+  }
+  if (globals.localRedisValid && curAnimes.length !== 0) {
+    await updateLocalRedisCaches();
   }
 
   // 缓存搜索结果
@@ -1289,6 +1296,17 @@ async function fetchMergedComments(url) {
   // 等待所有源请求完成
   const results = await Promise.all(tasks);
   
+  // 跨源时间轴对齐（仅当存在 dandan 源时执行）
+  if (sourceNames.includes('dandan')) {
+    const realIds = parts.map(part => {
+      const firstColonIndex = part.indexOf(':');
+      return firstColonIndex === -1 ? '' : part.substring(firstColonIndex + 1);
+    });
+
+    // 执行对齐函数
+    alignSourceTimelines(results, sourceNames, realIds);
+  }
+  
   // 3. 合并数据
   let mergedList = [];
   results.forEach(list => {
@@ -1388,6 +1406,9 @@ export async function getComment(path, queryFormat, segmentFlag) {
     }
     if (globals.redisValid && animeId) {
         setRedisKey('lastSelectMap', globals.lastSelectMap).catch(e => log("error", "Redis set error", e));
+    }
+    if (globals.localRedisValid && animeId) {
+        setLocalRedisKey('lastSelectMap', globals.lastSelectMap);
     }
   }
 

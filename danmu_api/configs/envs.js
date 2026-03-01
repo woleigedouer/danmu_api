@@ -401,6 +401,7 @@ export class Envs {
       'CONVERT_COLOR': { category: 'danmu', type: 'select', options: ['default', 'white', 'color'], description: '弹幕转换颜色配置' },
       'DANMU_OUTPUT_FORMAT': { category: 'danmu', type: 'select', options: ['json', 'xml'], description: '弹幕输出格式，默认json' },
       'DANMU_PUSH_URL': { category: 'danmu', type: 'text', description: '弹幕推送地址，示例 http://127.0.0.1:9978/action?do=refresh&type=danmaku&path= ' },
+      'LIKE_SWITCH': { category: 'danmu', type: 'boolean', description: '弹幕点赞数显示开关，默认开启' },
 
       // 缓存配置
       'SEARCH_CACHE_MINUTES': { category: 'cache', type: 'number', description: '搜索结果缓存时间(分钟)，默认1', min: 1, max: 120 },
@@ -409,6 +410,7 @@ export class Envs {
       'MAX_LAST_SELECT_MAP': { category: 'cache', type: 'number', description: '记住上次选择映射缓存大小限制', min: 10, max: 1000 },
       'UPSTASH_REDIS_REST_URL': { category: 'cache', type: 'text', description: 'Upstash Redis请求链接' },
       'UPSTASH_REDIS_REST_TOKEN': { category: 'cache', type: 'text', description: 'Upstash Redis访问令牌' },
+      'LOCAL_REDIS_URL': { category: 'cache', type: 'text', description: '本地 Redis 连接URL，示例：redis://:password@127.0.0.1:6379/0，只支持本地部署和docker部署' },
 
       // 系统配置
       'PROXY_URL': { category: 'system', type: 'text', description: '代理/反代地址' },
@@ -443,9 +445,11 @@ export class Envs {
       proxyUrl: this.get('PROXY_URL', '', 'string', true), // 代理/反代地址
       danmuSimplifiedTraditional: this.get('DANMU_SIMPLIFIED_TRADITIONAL', 'default', 'string'), // 弹幕简繁体转换设置：default（默认不转换）、simplified（繁转简）、traditional（简转繁）
       danmuPushUrl: this.get('DANMU_PUSH_URL', '', 'string'), // 代理/反代地址
+      likeSwitch: this.get('LIKE_SWITCH', true, 'boolean'), // 弹幕点赞数显示开关，默认开启
       tmdbApiKey: this.get('TMDB_API_KEY', '', 'string', true), // TMDB API KEY
       redisUrl: this.get('UPSTASH_REDIS_REST_URL', '', 'string', true), // upstash redis url
       redisToken: this.get('UPSTASH_REDIS_REST_TOKEN', '', 'string', true), // upstash redis url
+      localRedisUrl: this.get('LOCAL_REDIS_URL', '', 'string', true), // 本地 Redis 连接URL，示例：redis://:password@127.0.0.1:6379/0，只支持本地部署和docker部署
       rateLimitMaxRequests: this.get('RATE_LIMIT_MAX_REQUESTS', 3, 'number'), // 限流配置：时间窗口内最大请求次数（默认 3，0表示不限流）
       enableAnimeEpisodeFilter: this.get('ENABLE_ANIME_EPISODE_FILTER', false, 'boolean'), // 控制手动搜索的时候是否根据ANIME_TITLE_FILTER进行剧名过滤以及根据EPISODE_TITLE_FILTER进行集标题过滤（默认 false，禁用过滤）
       logLevel: this.get('LOG_LEVEL', 'info', 'string'), // 日志级别配置（默认 info，可选值：error, warn, info）
