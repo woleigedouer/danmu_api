@@ -8,29 +8,6 @@ import { traditionalized } from './zh-util.js';
 // =====================
 
 /**
- * 将普通数字转换为下标数字
- * @param {string} str 包含数字的字符串
- * @returns {string} 转换为下标数字的字符串
- */
-function toSubscript(str) {
-  const subscriptMap = {
-    '0': '₀',
-    '1': '₁',
-    '2': '₂',
-    '3': '₃',
-    '4': '₄',
-    '5': '₅',
-    '6': '₆',
-    '7': '₇',
-    '8': '₈',
-    '9': '₉',
-    '.': '․' // 下标点号
-  };
-
-  return str.split('').map(char => subscriptMap[char] || char).join('');
-}
-
-/**
  * 对弹幕进行分组、去重和计数处理
  * @param {Array} filteredDanmus 已过滤屏蔽词的弹幕列表
  * @param {number} n 分组时间间隔（分钟），0表示不分组（除非多源合并强制去重）
@@ -153,18 +130,17 @@ export function handleDanmusLike(groupedDanmus) {
     const icon = item.like >= threshold ? '🔥' : '️♡';
 
     // 格式化点赞数，缩写显示
-    // let formattedLike;
-    // if (item.like >= 10000) {
-    //   // 万级别，如 1.2w
-    //   formattedLike = (item.like / 10000).toFixed(1) + 'w';
-    // } else if (item.like >= 1000) {
-    //   // 千级别，如 1.2k
-    //   formattedLike = (item.like / 1000).toFixed(1) + 'k';
-    // } else {
-    //   // 百级别及以下，直接显示数字
-    //   formattedLike = item.like.toString();
-    // }
-    const formattedLike = toSubscript(item.like.toString());
+    let formattedLike;
+    if (item.like >= 10000) {
+      // 万级别，如 1.2w
+      formattedLike = (item.like / 10000).toFixed(1) + 'w';
+    } else if (item.like >= 1000) {
+      // 千级别，如 1.2k
+      formattedLike = (item.like / 1000).toFixed(1) + 'k';
+    } else {
+      // 百级别及以下，直接显示数字
+      formattedLike = item.like.toString();
+    }
 
     // 在弹幕内容m字段后面添加点赞信息
     const likeText = `${icon}${formattedLike}`;
