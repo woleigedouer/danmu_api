@@ -364,6 +364,13 @@ export const componentsCssContent = /* css */ `
     box-shadow: 0 40px 80px rgba(0,0,0,0.2);
     border: 1px solid rgba(255,255,255,0.5);
     padding: 40px;
+    width: 100%;
+    max-width: 600px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    position: relative;
+    top: 0;
+    left: 0;
 }
 
 /* 配置编辑弹窗专用样式 - 更宽更协调的比例 */
@@ -1175,6 +1182,68 @@ export const componentsCssContent = /* css */ `
     .heatmap-bars {
         height: 70px;
     }
+}
+
+/* 偏移规则快速配置 */
+.offset-rule-panel {
+    display: none;
+    margin-top: 10px;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #f9f9f9;
+}
+
+.offset-form-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.offset-label {
+    font-size: 12px;
+    color: #666;
+}
+
+.offset-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+    box-sizing: border-box;
+}
+
+.offset-sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.offset-source-tag {
+    padding: 3px 10px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    font-size: 12px;
+    cursor: pointer;
+    user-select: none;
+    background: #fff;
+    color: #666;
+    transition: all 0.15s;
+}
+
+.offset-source-tag.selected {
+    background: #1a73e8;
+    color: #fff;
+    border-color: #1a73e8;
+}
+
+.offset-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
 }
 `;
 
