@@ -13,9 +13,8 @@ export const Globals = {
   accessedEnvVars: {},
 
   // 静态常量
-  VERSION: '1.18.0',
+  VERSION: '1.18.2',
   MAX_LOGS: 1000, // 日志存储，最多保存 1000 行
-  MAX_ANIMES: 100,
   MAX_RECORDS: 100, // 请求记录最大数量
 
   // 运行时状态
@@ -164,7 +163,7 @@ export const Globals = {
         // 映射大写常量到小写
         if (prop === 'version') return self.VERSION;
         if (prop === 'maxLogs') return self.MAX_LOGS;
-        if (prop === 'maxAnimes') return self.MAX_ANIMES;
+        if (prop === 'maxAnimes') return self.envs.MAX_ANIMES;
         if (prop === 'maxRecords') return self.MAX_RECORDS;
         if (prop === 'maxLastSelectMap') return self.MAX_LAST_SELECT_MAP;
 
