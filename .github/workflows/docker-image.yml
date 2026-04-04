@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
       - main
-    if: github.repository == 'huangxd-/danmu_api'
+  workflow_dispatch:
 
 jobs:
   build:
