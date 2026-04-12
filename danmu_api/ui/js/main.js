@@ -49,7 +49,7 @@ function customAlert(message, title = '提示') {
 
     // 设置标题和消息
     titleElement.textContent = title;
-    messageElement.textContent = message;
+    messageElement.innerHTML = message;
 
     // 显示弹窗
     overlay.classList.add('active');
@@ -73,7 +73,7 @@ function customConfirm(message, title = '确认') {
 
         // 设置标题和消息
         titleElement.textContent = title;
-        messageElement.textContent = message;
+        messageElement.innerHTML = message;
 
         // 确定按钮事件
         newConfirmBtn.addEventListener('click', () => {

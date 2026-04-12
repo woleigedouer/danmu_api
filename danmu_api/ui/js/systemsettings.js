@@ -42,7 +42,7 @@ async function confirmClearCache() {
         if (result.success) {
             updateLoadingText('清理完成', '缓存已成功清除');
             addLog('缓存清理完成', 'success');
-            addLog('✅ 缓存清理成功！已清理: ' + JSON.stringify(result.clearedItems), 'success');
+            addLog('缓存清理成功！已清理: ' + JSON.stringify(result.clearedItems), 'success');
         } else {
             updateLoadingText('清理失败', '请查看日志了解详情');
             addLog('缓存清理失败: ' + result.message, 'error');
@@ -94,7 +94,7 @@ function confirmDeploySystem() {
                         hideLoading();
                         addLog('===== 部署完成 =====', 'success');
                         addLog('Node部署模式，环境变量已生效', 'info');
-                        addLog('✅ Node部署模式 - 在Node部署模式下，环境变量修改后会自动生效，无需重新部署。系统已更新配置', 'success');
+                        addLog('Node部署模式 - 在Node部署模式下，环境变量修改后会自动生效，无需重新部署。系统已更新配置', 'success');
                     }, 150);
                 } else {  
                     // 调用真实的部署API
@@ -113,13 +113,11 @@ function confirmDeploySystem() {
                         } else {
                             hideLoading();
                             addLog(\`云端部署失败: \${result.message}\`, 'error');
-                            addLog(\`❌ 云端部署失败: \${result.message}\`, 'error');
                         }
                     })
                     .catch(error => {
                         hideLoading();
                         addLog(\`云端部署请求失败: \${error.message}\`, 'error');
-                        addLog(\`❌ 云端部署请求失败: \${error.message}\`, 'error');
                     });
                 }
             })
@@ -218,8 +216,8 @@ function confirmDeploymentByLogs() {
                     setTimeout(() => {
                         hideLoading();
                         // 显示成功弹窗
-                        customAlert('🎉 部署成功！云端部署已完成，服务已重启，配置已生效');
-                        addLog('🎉 部署成功！云端部署已完成，服务已重启，配置已生效', 'success');
+                        customAlert('部署成功！云端部署已完成，服务已重启，配置已生效');
+                        addLog('部署成功！云端部署已完成，服务已重启，配置已生效', 'success');
                     }, 200);
                 } else if (confirmationAttempts >= maxAttempts) {
                     // 达到最大尝试次数，停止确认检查
@@ -230,8 +228,8 @@ function confirmDeploymentByLogs() {
                     setTimeout(() => {
                         hideLoading();
                         // 显示成功弹窗
-                        customAlert('🎉 部署成功！云端部署已完成，服务已重启，配置已生效');
-                        addLog('🎉 部署成功！云端部署已完成，服务已重启，配置已生效', 'success');
+                        customAlert('部署成功！云端部署已完成，服务已重启，配置已生效');
+                        addLog('部署成功！云端部署已完成，服务已重启，配置已生效', 'success');
                     }, 200);
                 } else {
                     addLog('部署确认中 - 状态码: ' + response.status, 'info');
@@ -247,8 +245,8 @@ function confirmDeploymentByLogs() {
                     setTimeout(() => {
                         hideLoading();
                         // 显示成功弹窗
-                        customAlert('🎉 部署成功！云端部署已完成，服务已重启，配置已生效');
-                        addLog('🎉 部署成功！云端部署已完成，服务已重启，配置已生效', 'success');
+                        customAlert('部署成功！云端部署已完成，服务已重启，配置已生效');
+                        addLog('部署成功！云端部署已完成，服务已重启，配置已生效', 'success');
                     }, 200);
                 } else {
                     addLog('部署确认中 - 连接失败: ' + error.message, 'info');
@@ -314,7 +312,19 @@ async function checkDeployPlatformConfig() {
             displayBase = displayBase.slice(0, -1);
         }
         
-        return { success: false, message: '请先配置ADMIN_TOKEN环境变量并使用正确的token访问以启用系统部署功能！\\n\\n访问方式：' + displayBase + '/{ADMIN_TOKEN}' };
+        return { success: false, message: \`<div style="text-align: left;">
+            <p style="margin-bottom: 12px; font-weight: 500;">检测到未配置系统管理令牌 (ADMIN_TOKEN)，无法使用系统配置功能。</p>
+            <div style="background: rgba(0,0,0,0.03); padding: 16px; border-radius: 12px; font-size: 13px; border: 1px solid rgba(0,0,0,0.05);">
+                <p style="margin-bottom: 8px; font-weight: bold; color: var(--text-primary);">如何修复：</p>
+                <ol style="padding-left: 20px; margin-bottom: 12px; color: var(--text-secondary); line-height: 1.6;">
+                    <li>在部署平台设置环境变量 <code>ADMIN_TOKEN</code></li>
+                    <li>重新部署服务</li>
+                    <li>使用带Token的链接访问</li>
+                </ol>
+                <p style="margin-bottom: 6px; font-weight: bold; color: var(--text-primary);">访问示例：</p>
+                <code style="display: block; background: #fff; padding: 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.08); word-break: break-all; font-family: 'SF Mono', monospace; color: var(--primary-color);">\${displayBase}/{ADMIN_TOKEN}</code>
+            </div>
+        </div>\` };
     }
     
     try {
@@ -498,7 +508,7 @@ function renderValueInput(item) {
                 \${shouldShowMergeMode ? \`
                 <div class="merge-mode-controls">
                     <div class="merge-mode-btn" id="merge-mode-toggle" onclick="toggleMergeMode()">
-                        <span class="icon">🔗️</span> 开启合并模式
+                        开启合并模式
                     </div>
                     <div class="form-help" style="margin: 0; margin-left: 10px;">
                         开启后点击下方选项将添加到暂存区,组合后点击 √ 确认
@@ -687,13 +697,12 @@ function renderValueInput(item) {
             container.innerHTML = \`
                 <div class="bili-cookie-editor">
                     <div class="bili-cookie-status" id="bili-cookie-status">
-                        <span class="bili-status-icon">🔍</span>
                         <span class="bili-status-text">检测中...</span>
                     </div>
                     
                     <div class="bili-cookie-actions">
                         <button type="button" class="btn btn-primary btn-sm" onclick="startBilibiliQRLogin()">
-                            📱 扫码登录
+                            扫码登录
                         </button>
                     </div>
                     
@@ -1225,12 +1234,12 @@ function toggleMergeMode() {
 
     if (isMergeMode) {
         btn.classList.add('active');
-        btn.innerHTML = '<span class="icon">⛓‍💥</span> 合并模式已开启，点击关闭';
+        btn.innerHTML = '关闭合并模式';
         stagingArea.classList.add('active');
         renderStagingArea();
     } else {
         btn.classList.remove('active');
-        btn.innerHTML = '<span class="icon">🔗️</span> 点击开启合并模式';
+        btn.innerHTML = '开启合并模式';
         stagingArea.classList.remove('active');
         stagingTags = [];
     }
@@ -1890,12 +1899,10 @@ function deleteEnv(index) {
                     addLog(\`删除配置项: \${key}\`, 'warn');
                 } else {
                     addLog(\`删除配置项失败: \${result.message}\`, 'error');
-                    addLog(\`❌ 删除配置项失败: \${result.message}\`, 'error');
                 }
             })
             .catch(error => {
                 addLog(\`删除配置项失败: \${error.message}\`, 'error');
-                addLog(\`❌ 删除配置项失败: \${error.message}\`, 'error');
             })
             .finally(() => {
                 // 恢复按钮状态
@@ -2020,12 +2027,10 @@ document.getElementById('env-form').addEventListener('submit', async function(e)
             closeModal();
         } else {
             addLog(\`操作失败: \${result.message}\`, 'error');
-            addLog(\`❌ 操作失败: \${result.message}\`, 'error');
             customAlert(result.message + '，请检查部署平台相关环境变量配置是否正确');
         }
     } catch (error) {
         addLog(\`更新环境变量失败: \${error.message}\`, 'error');
-        addLog(\`❌ 更新环境变量失败: \${error.message}\`, 'error');
         customAlert(error.message + '，请检查部署平台相关环境变量配置是否正确');
     }
 });
@@ -2063,7 +2068,7 @@ async function startBilibiliQRLogin() {
             <div class="modal" id="bili-qr-modal">
                 <div class="modal-content" style="max-width: 400px;">
                     <div class="modal-header">
-                        <h3>📱 扫码登录 Bilibili</h3>
+                        <h3>扫码登录 Bilibili</h3>
                         <button class="close-btn" onclick="closeBiliQRModal()">×</button>
                     </div>
                     <div class="modal-body" style="text-align: center;">
@@ -2116,7 +2121,7 @@ async function startBilibiliQRLogin() {
         }
     } catch (error) {
         qrLoading.style.display = 'none';
-        qrStatus.textContent = '❌ ' + error.message;
+        qrStatus.textContent = error.message;
     }
 }
 
@@ -2140,17 +2145,17 @@ function startBiliQRCheck() {
                 
                 switch (code) {
                     case 86101:
-                        qrStatus.textContent = '⏳ 等待扫码...';
+                        qrStatus.textContent = '等待扫码...';
                         break;
                     case 86090:
-                        qrStatus.textContent = '📱 已扫码，请确认';
+                        qrStatus.textContent = '已扫码，请确认';
                         break;
                     case 86038:
-                        qrStatus.textContent = '❌ 二维码已过期';
+                        qrStatus.textContent = '二维码已过期';
                         clearInterval(biliQRCheckInterval);
                         break;
                     case 0:
-                        qrStatus.textContent = '✅ 登录成功！';
+                        qrStatus.textContent = '登录成功！';
                         clearInterval(biliQRCheckInterval);
                         
                         if (result.data.cookie) {
@@ -2205,11 +2210,11 @@ async function autoCheckBilibiliCookieStatus() {
     
     // 如果输入框为空,提示未配置
     if (!cookie) {
-        statusEl.innerHTML = '<span class="bili-status-icon">⚠️</span><span class="bili-status-text">未配置</span>';
+        statusEl.innerHTML = '<span class="bili-status-text">未配置</span>';
         return;
     }
     
-    statusEl.innerHTML = '<span class="bili-status-icon">🔍</span><span class="bili-status-text">检测中...</span>';
+    statusEl.innerHTML = '<span class="bili-status-text">检测中...</span>';
 
     // 脱敏后的 *...* 无法直接校验，后端会自动改为校验“已保存”的 Cookie
     const isMasked = /^[*]+$/.test(cookie);
@@ -2238,20 +2243,20 @@ async function autoCheckBilibiliCookieStatus() {
 
                 // 用户手动输入/扫码填入的 Cookie → 提示保存
                 if (!isMasked) {
-                    statusEl.innerHTML = \`<span class="bili-status-icon">✅</span><span class="bili-status-text">\${uname}\${leftText} · 请点击保存按钮（Vercel等平台需重新部署后生效）</span>\`;
+                    statusEl.innerHTML = \`<span class="bili-status-text">\${uname}\${leftText} · 请点击保存按钮（Vercel等平台需重新部署后生效）</span>\`;
                 } else {
                     // 脱敏显示时只展示当前已保存 Cookie 的状态
-                    statusEl.innerHTML = \`<span class="bili-status-icon">✅</span><span class="bili-status-text">\${uname}\${leftText}</span>\`;
+                    statusEl.innerHTML = \`<span class="bili-status-text">\${uname}\${leftText}</span>\`;
                 }
             } else {
                 const err = result.data.error || 'Cookie无效或已失效';
-                statusEl.innerHTML = \`<span class="bili-status-icon">❌</span><span class="bili-status-text">\${err}，请重新扫码登录并保存</span>\`;
+                statusEl.innerHTML = \`<span class="bili-status-text">\${err}，请重新扫码登录并保存</span>\`;
             }
         } else {
-            statusEl.innerHTML = '<span class="bili-status-icon">⚠️</span><span class="bili-status-text">检测失败</span>';
+            statusEl.innerHTML = '<span class="bili-status-text">检测失败</span>';
         }
     } catch (error) {
-        statusEl.innerHTML = '<span class="bili-status-icon">⚠️</span><span class="bili-status-text">检测失败</span>';
+        statusEl.innerHTML = '<span class="bili-status-text">检测失败</span>';
     }
 }
 // 显示 Bilibili Cookie 保存提示
@@ -2260,7 +2265,7 @@ function showBilibiliCookieSaveHint(text) {
     if (!statusEl) return;
 
     const msg = text || '请点击保存按钮,Vercel等平台需重新部署后生效';
-    statusEl.innerHTML = \`<span class="bili-status-icon">💾</span><span class="bili-status-text">\${msg}</span>\`;
+    statusEl.innerHTML = \`<span class="bili-status-text">\${msg}</span>\`;
 }
 
 /* ========================================
