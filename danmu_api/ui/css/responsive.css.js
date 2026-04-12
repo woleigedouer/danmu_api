@@ -1,74 +1,100 @@
 // language=CSS
 export const responsiveCssContent = /* css */ `
-/* 响应式样式 */
+/* 响应式样式 - Zen-iOS Hybrid Design */
 @media (max-width: 768px) {
-    .logo {
-        width: 40px;
-        height: 40px;
-        font-size: 22px;
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        border-radius: 24px; /* Slightly smaller radius on mobile */
+    }
+
+    .header {
+        padding: 20px;
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .header-left {
         width: 100%;
-        flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
+        text-align: center;
     }
 
     .logo-title-container {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
+        flex-direction: column;
         gap: 10px;
     }
 
+    .logo {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+    }
+
     .header h1 {
-        font-size: 18px;
-        margin: 0;
+        font-size: 20px;
     }
 
     .version-info {
-        font-size: 11px;
-        flex-wrap: wrap;
-        margin-top: 5px;
+        justify-content: center;
+        margin-top: 8px;
         width: 100%;
+        font-size: 11px;
     }
 
     .nav-buttons {
         width: 100%;
-        flex-wrap: wrap;
-        gap: 5px;
-        justify-content: center;
+        justify-content: stretch;
+        gap: 4px;
+        background: rgba(118, 118, 128, 0.12);
+        border-radius: 12px;
+        padding: 4px;
     }
 
     .nav-btn {
-        flex: 1 1 calc(33.333% - 5px);
+        flex: 1;
         text-align: center;
-        font-size: 11px;
-        padding: 8px 5px;
-        white-space: nowrap;
-        min-width: 70px;
-        max-width: 120px;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-size: 12px;
+        padding: 6px 2px;
+        border-radius: 8px;
+    }
+
+    .content {
+        padding: 20px;
     }
 
     .env-item {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
+        padding: 16px;
+    }
+
+    .env-item .env-info {
+        min-width: 0; /* Fix flex overflow */
+        width: 100%;
+    }
+
+    .env-item .env-info div.text-dark-gray {
+        font-size: 13px;
+        max-width: 100%;
     }
 
     .env-actions {
         width: 100%;
+        margin-top: 12px;
+        display: flex;
     }
 
-    .btn {
+    .env-actions .btn {
         flex: 1;
     }
 
     .preview-toolbar {
         align-items: stretch;
         flex-direction: column;
-        gap: 8px;
+        gap: 12px;
         padding-top: 8px;
     }
 
@@ -77,13 +103,15 @@ export const responsiveCssContent = /* css */ `
         width: 100%;
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-        gap: 6px;
+        gap: 8px;
         overflow: visible;
     }
 
     .preview-category-btn {
         width: 100%;
+        min-height: 44px;
         min-width: 0;
+        padding: 9px 12px;
         justify-content: space-between;
     }
 
@@ -92,6 +120,19 @@ export const responsiveCssContent = /* css */ `
         flex: none;
         width: 100%;
         min-width: 0;
+    }
+
+    .preview-search input {
+        height: 44px;
+        padding-right: 50px;
+        font-size: 16px;
+    }
+
+    .preview-search-clear {
+        top: 0;
+        right: 0;
+        width: 44px;
+        height: 44px;
     }
 
     .preview-overview {
@@ -103,7 +144,7 @@ export const responsiveCssContent = /* css */ `
     }
 
     .preview-item {
-        padding: 12px 4px;
+        padding: 12px;
     }
 
     .preview-item-main {
@@ -122,10 +163,86 @@ export const responsiveCssContent = /* css */ `
 
     .preview-value-actions {
         align-self: flex-end;
+        gap: 8px;
+    }
+
+    .preview-action-btn {
+        min-width: 44px;
+        height: 44px;
     }
 
     .preview-item-description {
         margin: 8px 0 0;
+    }
+
+    .preview-item .preview-value {
+        font-size: 12px;
+    }
+
+    .api-selector select {
+        font-size: 16px; /* Prevent auto-zoom on iOS */
+    }
+
+    /* 配置编辑弹窗移动端适配 */
+    #env-modal .modal-content {
+        width: 95vw;
+        max-width: none;
+        padding: 24px 20px;
+        border-radius: 24px;
+        max-height: 90vh;
+    }
+
+    #env-modal .selected-tags {
+        max-height: 120px;
+    }
+
+    #env-modal .available-tags {
+        max-height: 150px;
+    }
+
+    #env-modal .modal-header {
+        padding-bottom: 16px;
+        margin-bottom: 20px;
+    }
+
+    #env-modal .modal-header h3 {
+        font-size: 18px;
+    }
+
+    /* 推送弹幕移动端适配 */
+    .anime-grid {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 12px;
+    }
+
+    .anime-item-img {
+        aspect-ratio: 3 / 4;
+    }
+
+    .anime-title {
+        padding: 10px;
+        font-size: 12px;
+    }
+
+    .episode-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 14px 16px;
+    }
+
+    .episode-item-content {
+        white-space: normal;
+    }
+
+    .episode-push-btn {
+        width: 100%;
+    }
+
+    #push-anime-list,
+    #push-episode-list {
+        padding: 16px;
+        margin-top: 16px;
     }
 }
 `;
