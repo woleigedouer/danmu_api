@@ -1142,6 +1142,7 @@ export async function matchAnime(url, req, clientIp) {
     }
 
     if (resEpisode) {
+      resData["isMatched"] = true;
       if (clientIp) {
         setLastSearch(clientIp, { title, season, episode, episodeId: resEpisode.episodeId });
       }
