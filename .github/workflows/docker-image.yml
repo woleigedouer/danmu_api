@@ -3,7 +3,7 @@ name: Build and Push Docker Image to Docker Hub
 on:
   push:
     branches:
-      - main
+      - douer
   pull_request:
     branches:
       - main
@@ -24,14 +24,10 @@ jobs:
         run: |
           VERSION=$(grep "VERSION:" danmu_api/configs/globals.js | sed -E "s/.*VERSION: '(.*)'.*/\1/")
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-      # 根据分支设置版本号后缀
-      - name: Set version suffix
+      # douer 分支作为镜像发布源，直接使用正式版本号标签
+      - name: Set version tag
         run: |
-          if [ "${{ github.ref }}" != "refs/heads/main" ]; then
-            echo "VERSION_TAG=${{ env.VERSION }}-test" >> $GITHUB_ENV
-          else
-            echo "VERSION_TAG=${{ env.VERSION }}" >> $GITHUB_ENV
-          fi
+          echo "VERSION_TAG=${{ env.VERSION }}" >> $GITHUB_ENV
 
       # ✅ 先登录，再初始化 Buildx，避免拉取 BuildKit 镜像时触发匿名限速
       - name: Login to Docker Hub
@@ -52,13 +48,7 @@ jobs:
 
       - name: Build and Push Docker image
         run: |
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            docker buildx build --platform linux/amd64,linux/arm64 \
-              -t ${{ secrets.DOCKER_USERNAME }}/danmu-api:${{ env.VERSION_TAG }} \
-              -t ${{ secrets.DOCKER_USERNAME }}/danmu-api:latest \
-              --push .
-          else
-            docker buildx build --platform linux/amd64,linux/arm64 \
-              -t ${{ secrets.DOCKER_USERNAME }}/danmu-api:${{ env.VERSION_TAG }} \
-              --push .
-          fi
+          docker buildx build --platform linux/amd64,linux/arm64 \
+            -t ${{ secrets.DOCKER_USERNAME }}/danmu-api:${{ env.VERSION_TAG }} \
+            -t ${{ secrets.DOCKER_USERNAME }}/danmu-api:latest \
+            --push .
