@@ -29,14 +29,21 @@ export const HTML_TEMPLATE = /* html */ `
     <style>${themesCssContent}</style>
     
 </head>
-<body data-theme="globals.uiTheme">
+<body globals.bodyThemeAttribute>
     <script>
+        const configuredTheme = 'globals.uiTheme';
+        const supportedThemes = ['classic', 'ocean', 'forest', 'graphite', 'berry', 'monochrome', 'sunset', 'aurora', 'mist', 'terminal', 'lavender'];
+        let selectedTheme = configuredTheme;
         try {
             const storedTheme = localStorage.getItem('logvar_ui_theme');
-            const supportedThemes = ['ocean', 'forest', 'graphite', 'berry', 'monochrome', 'sunset', 'aurora', 'mist', 'terminal', 'lavender'];
-            if (supportedThemes.includes(storedTheme)) document.body.dataset.theme = storedTheme;
+            if (supportedThemes.includes(storedTheme)) selectedTheme = storedTheme;
         } catch (error) {
             // localStorage may be unavailable in restricted browser contexts.
+        }
+        if (selectedTheme === 'classic') {
+            document.body.removeAttribute('data-theme');
+        } else if (supportedThemes.includes(selectedTheme)) {
+            document.body.dataset.theme = selectedTheme;
         }
     </script>
     <div class="container">
@@ -337,9 +344,12 @@ export const HTML_TEMPLATE = /* html */ `
                 <div class="theme-settings" id="theme-settings" hidden>
                     <div class="theme-settings-copy">
                         <h3>界面主题</h3>
-                        <span class="theme-current-label" id="theme-current-label">UI_THEME · 海湾蓝</span>
+                        <span class="theme-current-label" id="theme-current-label">UI_THEME · 经典 Zen</span>
                     </div>
                     <div class="theme-options" role="radiogroup" aria-label="界面主题选择">
+                        <button type="button" role="radio" class="theme-option" data-theme-option="classic" aria-checked="false" onclick="selectTheme('classic')" title="经典 Zen">
+                            <span class="theme-swatches" aria-hidden="true"><i style="background: #f2f2f7"></i><i style="background: #ffffff"></i><i style="background: #1c1c1e"></i></span><span class="theme-option-label">经典 Zen</span>
+                        </button>
                         <button type="button" role="radio" class="theme-option" data-theme-option="ocean" aria-checked="false" onclick="selectTheme('ocean')" title="海湾蓝">
                             <span class="theme-swatches" aria-hidden="true"><i style="background: #145b6f"></i><i style="background: #159b8f"></i><i style="background: #dfe9f1"></i></span><span class="theme-option-label">海湾蓝</span>
                         </button>
@@ -367,8 +377,8 @@ export const HTML_TEMPLATE = /* html */ `
                         <button type="button" role="radio" class="theme-option" data-theme-option="terminal" aria-checked="false" onclick="selectTheme('terminal')" title="终端绿">
                             <span class="theme-swatches" aria-hidden="true"><i style="background: #050706"></i><i style="background: #4faf75"></i><i style="background: #1d231f"></i></span><span class="theme-option-label">终端绿</span>
                         </button>
-                        <button type="button" role="radio" class="theme-option" data-theme-option="lavender" aria-checked="false" onclick="selectTheme('lavender')" title="经典默认">
-                            <span class="theme-swatches" aria-hidden="true"><i style="background: #1a2980"></i><i style="background: #26d0ce"></i><i style="background: #a0b9e8"></i></span><span class="theme-option-label">经典默认</span>
+                        <button type="button" role="radio" class="theme-option" data-theme-option="lavender" aria-checked="false" onclick="selectTheme('lavender')" title="经典渐变">
+                            <span class="theme-swatches" aria-hidden="true"><i style="background: #1a2980"></i><i style="background: #26d0ce"></i><i style="background: #a0b9e8"></i></span><span class="theme-option-label">经典渐变</span>
                         </button>
                     </div>
                 </div>

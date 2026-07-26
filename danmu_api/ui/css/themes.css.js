@@ -1,24 +1,7 @@
 // language=CSS
 export const themesCssContent = /* css */ `
 /* 用户界面主题变量与覆盖层 */
-body {
-    --theme-page-bg: #dfe9f1;
-    --theme-container-bg: #ffffff;
-    --theme-content-bg: #ffffff;
-    --theme-panel-bg: #f5f8fa;
-    --theme-panel-strong: #edf2f5;
-    --theme-header: #145b6f;
-    --theme-header-accent: #159b8f;
-    --theme-accent: #1769aa;
-    --theme-accent-hover: #12578e;
-    --theme-accent-soft: #e5f1f8;
-    --theme-text: #24323b;
-    --theme-muted: #66747d;
-    --theme-border: #d5dfe5;
-    --theme-input-bg: #ffffff;
-    --theme-code-bg: #18232b;
-    --theme-code-text: #d9f0f0;
-    --theme-link: #1769aa;
+body[data-theme] {
     background: var(--theme-page-bg);
     color: var(--theme-text);
     transition: background-color 0.25s ease, color 0.25s ease;
@@ -488,7 +471,6 @@ body[data-theme="terminal"] .modal-footer {
     border-color: var(--theme-border);
 }
 
-body[data-theme] .theme-option:focus-visible,
 body[data-theme] .btn:focus-visible,
 body[data-theme] .category-btn:focus-visible,
 body[data-theme] .preview-category-btn:focus-visible,
@@ -505,10 +487,12 @@ body[data-theme] .preview-search-clear:focus-visible {
     align-items: center;
     justify-content: space-between;
     gap: 18px;
-    padding: 14px 16px;
-    margin-bottom: 18px;
-    border: 1px solid #d5dfe5;
-    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
 }
 
 .theme-settings[hidden] {
@@ -557,12 +541,27 @@ body[data-theme] .preview-search-clear:focus-visible {
 }
 
 .theme-option:hover {
-    border-color: var(--theme-accent);
+    border-color: var(--theme-accent, var(--accent-color));
+}
+
+.theme-option[aria-checked="true"] {
+    background: var(--theme-accent-soft, rgba(0, 122, 255, 0.08));
+    border-color: var(--theme-accent, var(--accent-color));
+    box-shadow: 0 0 0 2px var(--theme-accent-soft, rgba(0, 122, 255, 0.08));
+}
+
+.theme-option[data-theme-option="classic"] {
+    grid-column: 1 / -1;
 }
 
 .theme-option:disabled {
     cursor: wait;
     opacity: 0.65;
+}
+
+.theme-option:focus-visible {
+    outline: 3px solid var(--theme-accent, var(--accent-color));
+    outline-offset: 2px;
 }
 
 .theme-swatches {
@@ -605,6 +604,13 @@ body[data-theme] .preview-search-clear:focus-visible {
     font-size: 20px;
     font-weight: 700;
     line-height: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body[data-theme],
+    .theme-option {
+        transition: none;
+    }
 }
 
 @media (max-width: 980px) {

@@ -6,19 +6,22 @@ import { HandlerFactory } from "../configs/handlers/handler-factory.js";
 import { clearBangumiDataCache, initBangumiData } from "../utils/bangumi-data-util.js";
 
 const UI_THEMES = new Set([
-  'ocean', 'forest', 'graphite', 'berry', 'monochrome',
+  'classic', 'ocean', 'forest', 'graphite', 'berry', 'monochrome',
   'sunset', 'aurora', 'mist', 'terminal', 'lavender'
 ]);
 
 function resolveUiTheme(theme) {
   const normalizedTheme = String(theme || '').toLowerCase();
-  return UI_THEMES.has(normalizedTheme) ? normalizedTheme : 'ocean';
+  return UI_THEMES.has(normalizedTheme) ? normalizedTheme : 'classic';
 }
 
 export function handleUI() {
+  const uiTheme = resolveUiTheme(globals.uiTheme);
+  const bodyThemeAttribute = uiTheme === 'classic' ? '' : ` data-theme="${uiTheme}"`;
   const html = HTML_TEMPLATE
     .replace("globals.currentToken", () => globals.currentToken)
-    .replace("globals.uiTheme", resolveUiTheme(globals.uiTheme));
+    .replace(" globals.bodyThemeAttribute", bodyThemeAttribute)
+    .replace("globals.uiTheme", uiTheme);
 
   return new Response(html, {
     headers: {
